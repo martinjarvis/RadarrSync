@@ -1,14 +1,19 @@
-[RadarrMaster]
 url = https://example.com:443
 key = FCKGW-RHQQ2-YXRKT-8TG6W-2B7Q8
 basepath = /Movies/HD
+url = http://127.0.0.1:7878/radarr
+key = b8fbf300346c433cab2e187c2c369c42
+basepath = /tv/
 
 [SyncServers]
 ; Ensure the servers start with 'Radarr_'
 [Radarr_4k]
 url = http://127.0.0.1:8080
 key = FCKGW-RHQQ2-YXRKT-8TG6W-2B7Q8
-newpath = /Movies/4K
+[Sonarr_4k]
+url = http://127.0.0.1:7879/radarr/4k
+key = 80ed2b34c1644fd2ab3361ad973caae3
+newpath = /4ktv/
 
 ;This is the profile ID the movie will be added to.
 profileId = 5
