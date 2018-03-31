@@ -1,6 +1,7 @@
 url = https://example.com:443
 key = FCKGW-RHQQ2-YXRKT-8TG6W-2B7Q8
 basepath = /Movies/HD
+[SonarrMaster]
 url = http://127.0.0.1:7878/radarr
 key = b8fbf300346c433cab2e187c2c369c42
 basepath = /tv/
