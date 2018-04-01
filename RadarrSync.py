@@ -6,23 +6,12 @@ import requests
 import configparser
 import argparse
 import shutil
+import time
 
-
-########################################################################################################################
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-
-fileHandler = logging.FileHandler("./Output.txt",'w','utf-8')
-fileHandler.setFormatter(logFormatter)
-logger.addHandler(fileHandler)
-
-consoleHandler = logging.StreamHandler(sys.stdout)
-consoleHandler.setFormatter(logFormatter)
-logger.addHandler(consoleHandler)
-########################################################################################################################
 parser = argparse.ArgumentParser(description='RadarrSync. Sync two or more Radarr servers. https://github.com/Sperryfreak01/RadarrSync')
 parser.add_argument('--config', action="store", type=str, help='Location of config file.')
+parser.add_argument('--debug', help='Enable debug logging.', action="store_true")
+parser.add_argument('--whatif', help="Read-Only. What would happen if I ran this. No posts are sent. Should be used with --debug", action="store_true")
 args = parser.parse_args()
 
 def ConfigSectionMap(section):
@@ -47,6 +36,28 @@ elif not os.path.isfile(settingsFilename):
     shutil.copyfile(os.path.join(os.getcwd(), 'Config.default'), settingsFilename)
     sys.exit(0)
 Config.read(settingsFilename)
+
+########################################################################################################################
+logger = logging.getLogger()
+if ConfigSectionMap("General")['log_level'] == 'DEBUG':
+    logger.setLevel(logging.DEBUG)
+elif ConfigSectionMap("General")['log_level'] == 'VERBOSE':
+    logger.setLevel(logging.VERBOSE)
+else:
+    logger.setLevel(logging.INFO)
+if args.debug:
+    logger.setLevel(logging.DEBUG)
+
+logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+
+fileHandler = logging.FileHandler(ConfigSectionMap('General')['log_path'],'w','utf-8')
+fileHandler.setFormatter(logFormatter)
+logger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler(sys.stdout)
+consoleHandler.setFormatter(logFormatter)
+logger.addHandler(consoleHandler)
+########################################################################################################################
 
 session = requests.Session()
 session.trust_env = False
@@ -79,7 +90,11 @@ for movie in radarrMovies.json():
     for name, server in servers.items():
         if movie['profileId'] == int(server['profileidmatch']):
             if movie['tmdbId'] not in server['movies']:
-                path = str.replace(str(movie['path']), ConfigSectionMap("RadarrMaster")['basepath'], server['newpath'])
+                if 'replace_path' in server:
+                    path = str(movie['path']).replace(server['replace_path'], server['new_path'])
+                    logging.debug('Updating movie path from: {0} to {1}'.format(movie['path'], path))
+                else:
+                    path = movie['path']
                 logging.debug('server: {0}'.format(name))
                 logging.debug('title: {0}'.format(movie['title']))
                 logging.debug('qualityProfileId: {0}'.format(server['profileid']))
@@ -103,9 +118,16 @@ for movie in radarrMovies.json():
                            'minimumAvailability': 'released'
                            }
 
-                r = session.post('{0}/api/movie?apikey={1}'.format(server['url'], server['key']), data=json.dumps(payload))
                 logging.debug('payload: {0}'.format(payload))
-                server['searchid'].append(int(r.json()['id']))
+                server['newMovies'] += 1
+                if args.whatif:
+                    logging.debug('WhatIf: Not actually adding movie to Radarr {0}.'.format(name))
+                else:
+                    if server['newMovies'] > 0:
+                        logging.debug('Sleeping for: {0} seconds.'.format(ConfigSectionMap('General')['wait_between_add']))
+                        time.sleep(int(ConfigSectionMap('General')['wait_between_add']))
+                    r = session.post('{0}/api/movie?apikey={1}'.format(server['url'], server['key']), data=json.dumps(payload))
+                    server['searchid'].append(int(r.json()['id']))
                 logger.info('adding {0} to Radarr {1} server'.format(movie['title'], name))
             else:
                 logging.debug('{0} already in {1} library'.format(movie['title'], name))

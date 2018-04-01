@@ -1,5 +1,5 @@
 [General]
-# Time to wait between adding new movies to a server. This will help reduce the load of the Sync server. (seconds)
+# Time to wait between adding new movies to a server. This will help reduce the load of the Sync server. 0 to disable. (seconds)
 wait_between_add = 5
 
 # Full path to log file
