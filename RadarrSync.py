@@ -4,6 +4,8 @@ import json
 import sys
 import requests
 import configparser
+import argparse
+import shutil
 
 
 ########################################################################################################################
@@ -19,6 +21,9 @@ consoleHandler = logging.StreamHandler(sys.stdout)
 consoleHandler.setFormatter(logFormatter)
 logger.addHandler(consoleHandler)
 ########################################################################################################################
+parser = argparse.ArgumentParser(description='RadarrSync. Sync two or more Radarr servers. https://github.com/Sperryfreak01/RadarrSync')
+parser.add_argument('--config', action="store", type=str, help='Location of config file.')
+args = parser.parse_args()
 
 def ConfigSectionMap(section):
     dict1 = {}
@@ -35,6 +40,12 @@ def ConfigSectionMap(section):
 
 Config = configparser.ConfigParser()
 settingsFilename = os.path.join(os.getcwd(), 'Config.txt')
+if args.config:
+    settingsFilename = args.config
+elif not os.path.isfile(settingsFilename):
+    print("Creating default config. Please edit and run again.")
+    shutil.copyfile(os.path.join(os.getcwd(), 'Config.default'), settingsFilename)
+    sys.exit(0)
 Config.read(settingsFilename)
 
 session = requests.Session()
