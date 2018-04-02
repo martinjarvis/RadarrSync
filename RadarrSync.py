@@ -37,6 +37,9 @@ elif not os.path.isfile(settingsFilename):
     sys.exit(0)
 Config.read(settingsFilename)
 
+print(ConfigSectionMap('Radarr_4k')['rootfolders'].split(';'))
+exit()
+
 ########################################################################################################################
 logger = logging.getLogger()
 if ConfigSectionMap("General")['log_level'] == 'DEBUG':
@@ -90,6 +93,11 @@ for movie in radarrMovies.json():
     for name, server in servers.items():
         if movie['profileId'] == int(server['profileidmatch']):
             if movie['tmdbId'] not in server['movies']:
+                if 'rootfolders' in server:
+                    allowedFolders = server['rootfolders'].split(';')
+                    for folder in allowedFolders:
+                        if not folder in movie['path']:
+                            continue
                 if 'replace_path' in server:
                     path = str(movie['path']).replace(server['replace_path'], server['new_path'])
                     logging.debug('Updating movie path from: {0} to {1}'.format(movie['path'], path))

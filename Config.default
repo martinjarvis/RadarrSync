@@ -23,6 +23,9 @@ key = FCKGW-RHQQ2-YXRKT-8TG6W-2B7Q8
 url = http://localhost:7878/4k_radarr
 key = FCKGW-RHQQ2-YXRKT-8TG6W-2B7Q8
 
+# Only sync movies that are in these root folders. ';' (semicolon) separated list. Remove line to disable.
+rootFolders = /Movies;/MoviesHD
+
 # If this path exists
 replace_path = /Movies/HD
 # Replace with this path
