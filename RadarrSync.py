@@ -122,7 +122,7 @@ for movie in radarrMovies.json():
                            'path': path,
                            'monitored': movie['monitored'],
                            'images': images,
-                           'profileId': movie['profileId'],
+                           'profileId': server['profileid'],
                            'minimumAvailability': 'released'
                            }
 
